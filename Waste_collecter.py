@@ -12,6 +12,7 @@ clock = pygame.time.Clock()
 Start_time = time.time()
 screen =  pygame.display.set_mode((WIDTH,HEIGHT))
 font = pygame.font.SysFont("Times New Romain",30)
+button_img = pygame.image.load("images/restart.png")
 score = 0
 time_left = 40
 Game_over = False
@@ -31,7 +32,18 @@ class Sprite(pygame.sprite.Sprite):
 class Bin(Sprite):
     def __init__(self):
         super().__init__("images/bin.png",0,0)
-    
+class Button():
+    def __init__(self,x,y,image):
+        self.image = image
+        self.Rect = self.image.get_rect()
+        self.Rect.topleft = (x,y)
+    def Draw(self):
+        action = False
+        if self.Rect.collidepoint(pygame.mouse.get_pos()):
+            if pygame.mouse.get_pressed()[0]==1:
+                action = True
+        screen.blit(self.image,(self.Rect.x,self.Rect.y))
+        return action
 
 bin = Bin()
 All_items = pygame.sprite.Group(bin)
@@ -51,10 +63,13 @@ for i in range(15):
     recycable_items.add(Items)
     All_items.add(Items)
 
+def reset_game():
+    score = 0
+    return score
         
 
 keys = [False,False,False,False]      
-
+button = Button(WIDTH // 2 - 50, HEIGHT // 2 - 100, button_img)
 
 Running = True
 
@@ -66,9 +81,14 @@ while Running:
     Score_text = font.render("Score:"+str(score),True,(10,10,10))
     screen.blit(Score_text,(10,10))
     elapsed_time = time.time()-Start_time
-    if elapsed_time > 60:
+    
+    Time = font.render("Elapsed time:"+str(elapsed_time),True,(10,10,10))
+    screen.blit(Time,(100,10))
+    Left = font.render("total time:"+str(time_left),True,(10,10,10))
+    screen.blit(Left,(450,10))
+
+    if elapsed_time > 40:
         Game_over = True
-        
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -89,8 +109,18 @@ while Running:
     
     score += len(pygame.sprite.spritecollide(bin,recycable_items,True))
     score -= len(pygame.sprite.spritecollide(bin,nonrecycable_items,True))
-    print(score)
-   
+    for event in pygame.event.get():
+        if elapsed_time >40:
+            elapsed_time = 40
+            Game_over = True
+        if Game_over == True:
+            if button.Draw():
+                game_over = False
+                score = reset_game()
+    
+        if button.Rect.collidepoint(event.pos):
+                    game_over == False
+                    score = reset_game
 
             
             
