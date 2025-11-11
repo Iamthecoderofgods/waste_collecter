@@ -14,8 +14,8 @@ screen =  pygame.display.set_mode((WIDTH,HEIGHT))
 font = pygame.font.SysFont("Times New Romain",30)
 button_img = pygame.image.load("images/restart.png")
 score = 0
-time_left = 40
-Game_over = False
+time_left = 5
+game_over = False
 def load_image(__path__):
     Bag = pygame.image.load(__path__).convert_alpha()
     Bag = pygame.transform.scale(Bag,(40,40))
@@ -38,11 +38,11 @@ class Button():
         self.Rect = self.image.get_rect()
         self.Rect.topleft = (x,y)
     def Draw(self):
+        screen.blit(self.image,(self.Rect.x,self.Rect.y))
         action = False
         if self.Rect.collidepoint(pygame.mouse.get_pos()):
-            if pygame.mouse.get_pressed()[0]==1:
+            if pygame.mouse.get_pressed()[0]:
                 action = True
-        screen.blit(self.image,(self.Rect.x,self.Rect.y))
         return action
 
 bin = Bin()
@@ -59,13 +59,18 @@ for i in range(10):
     
 for i in range(15):
     Item = random.choice(["images/pen.png","images/Plastic_bag.png","images/item1.png"])
-    Items= Sprite(Item,random.randint(0,WIDTH),random.randint(0,HEIGHT))
+    Items = Sprite(Item,random.randint(0,WIDTH),random.randint(0,HEIGHT))
     recycable_items.add(Items)
     All_items.add(Items)
 
+
 def reset_game():
+    global score,game_over,Start_time
     score = 0
+    game_over = False
+    Start_time = time.time()
     return score
+
         
 
 keys = [False,False,False,False]      
@@ -81,14 +86,15 @@ while Running:
     Score_text = font.render("Score:"+str(score),True,(10,10,10))
     screen.blit(Score_text,(10,10))
     elapsed_time = time.time()-Start_time
+    if elapsed_time >= time_left:
+        game_over = True
+        elapsed_time = time_left
     
     Time = font.render("Elapsed time:"+str(elapsed_time),True,(10,10,10))
     screen.blit(Time,(100,10))
     Left = font.render("total time:"+str(time_left),True,(10,10,10))
     screen.blit(Left,(450,10))
 
-    if elapsed_time > 40:
-        Game_over = True
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -107,20 +113,16 @@ while Running:
                 keys[0] = True
                 bin.rect.x += 5
     
-    score += len(pygame.sprite.spritecollide(bin,recycable_items,True))
-    score -= len(pygame.sprite.spritecollide(bin,nonrecycable_items,True))
-    for event in pygame.event.get():
-        if elapsed_time >40:
-            elapsed_time = 40
-            Game_over = True
-        if Game_over == True:
-            if button.Draw():
-                game_over = False
-                score = reset_game()
-    
-        if button.Rect.collidepoint(event.pos):
-                    game_over == False
-                    score = reset_game
+    if not game_over:
+
+        score += len(pygame.sprite.spritecollide(bin,recycable_items,True))
+        score -= len(pygame.sprite.spritecollide(bin,nonrecycable_items,True))
+    else:
+        if button.Draw():
+            reset_game()
+            elapsed_time -= 1
+        
+
 
             
             
